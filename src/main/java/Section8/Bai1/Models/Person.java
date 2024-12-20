@@ -1,5 +1,6 @@
-package Section8.Models;
+package Section8.Bai1.Models;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -7,8 +8,8 @@ public class Person {
     private long cccd;
     private String ten;
     private int tuoi;
-    private List<Car> carList;
-    private List<House> houses;
+    private List<Car> carList = new ArrayList<>();
+    private List<House> houses = new ArrayList<>();
 
     public long getCccd() {
         return cccd;
@@ -68,5 +69,16 @@ public class Person {
             house.infor();
         }
 
+    }
+
+    @Override
+    public String toString() {
+        return "Person{" +
+                "cccd=" + cccd +
+                ", ten='" + ten + '\'' +
+                ", tuoi=" + tuoi +
+                ", carList=" + carList +
+                ", houses=" + houses +
+                '}';
     }
 }

@@ -1,8 +1,8 @@
-package Section8.Main;
+package Section8.Bai1.Main;
 
-import Section8.Models.Car;
-import Section8.Models.House;
-import Section8.Models.Person;
+import Section8.Bai1.Models.Car;
+import Section8.Bai1.Models.House;
+import Section8.Bai1.Models.Person;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,11 +49,11 @@ public class Main {
                 car.infor();}
             }
             if (a==6){
+                int b;
 
-                System.out.println("Them Xe \n" +
+                do { System.out.println("Them Xe \n" +
                         "Them Nha \n");
-                int b = scanner.nextInt();
-                do {
+                     b = scanner.nextInt();
                     if(b==1){
 
                         System.out.println("Chon nguoi" );
@@ -63,13 +63,33 @@ public class Main {
                         }
                         int c = scanner.nextInt() - 1;
                         Person person1 = people.get(c);
+
                         System.out.println("chon xe");
                       for (Car car : cars){
                           car.infor();
                       }
                         int d = scanner.nextInt() -1 ;
                         Car car = cars.get(d);
-                        person1.setCarList((List<Car>) car);
+                        person1.getCarList().add(car);
+
+
+                    }
+                    if (b==2){
+                        System.out.println("Chon nguoi" );
+                        for (int i = 0 ;i< people.size();i++){
+                            System.out.println(i + 1 );
+                            people.get(i).infor();
+                        }
+                        int c = scanner.nextInt() - 1;
+                        Person person1 = people.get(c);
+
+                        System.out.println("chon xe");
+                        for (House house : houses){
+                            house.infor();
+                        }
+                        int d = scanner.nextInt() -1 ;
+                        House house = houses.get(d);
+                        person1.getHouses().add(house);
 
 
                     }
@@ -78,8 +98,10 @@ public class Main {
                 while (b!=0);
             }
             if (a==7){
-                Person person = new Person();
-                person.infor();
+                for (int i = 0 ;i< people.size();i++){
+                    System.out.println(i + 1 );
+                    people.get(i).infor();
+                }
             }
         }
         while (a!=0);
