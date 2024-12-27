@@ -32,14 +32,14 @@ public class BillDaoImpl implements BillDao {
     @Override
     public List<Bill> search(String fromDate, String toDate) {
         List<Bill> bills = new ArrayList<>();
-        String sql = "SELECT * FROM Bill WHERE buyDate BETWEEN ? AND ?";
+        String sql = "SELECT * FROM bill WHERE buydate BETWEEN ? AND ?";
         try (PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
             preparedStatement.setString(1, fromDate);
             preparedStatement.setString(2, toDate);
             ResultSet rs = preparedStatement.executeQuery();
             while (rs.next()) {
                 bills.add(new Bill(
-                        rs.getInt("id"),
+                        rs.getInt("idbill"),
                         rs.getInt("quantity"),
                         rs.getInt("price"),
                         rs.getInt("idproduct"),

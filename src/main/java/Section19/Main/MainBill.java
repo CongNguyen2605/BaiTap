@@ -39,9 +39,12 @@ public class MainBill {
                             product.setQuantity(product.getQuantity() - quantity);
                             productDao.updateProduct(product);
                             break;}
-
-
                         case 2:
+                            System.out.print("Enter product fromDate: ");
+                        String fromDate = scanner.next();
+                            System.out.print("Enter product toDate: ");
+                        String toDate = scanner.next();
+                        billDao.search(fromDate,toDate).forEach(System.out::println);
 
                     break;
 
