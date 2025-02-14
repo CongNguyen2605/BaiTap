@@ -1,0 +1,23 @@
+package Multi_Threads.VD1;
+
+public class Task2 extends Thread{
+   private String name;
+   private int num;
+
+    public Task2(String name, int num) {
+        this.name = name;
+        this.num = num;
+    }
+
+    @Override
+    public void run() {
+        for (int i = 0 ; i < this.num;i++){
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println(this.name);
+        }
+    }
+}
