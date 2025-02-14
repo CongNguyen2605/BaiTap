@@ -10,6 +10,6 @@ public interface RoomService {
     void addRoom();
      void exportRooms();
     void importRooms();
-    void updateRoom(long idRoom);
+
 
 }

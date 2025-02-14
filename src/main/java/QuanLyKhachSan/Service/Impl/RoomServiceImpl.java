@@ -51,26 +51,6 @@ public class RoomServiceImpl implements RoomService {
         roomRepository.importRoomsFromExcel(filePath);
     }
 
-    @Override
-    public void updateRoom(long idRoom) {
-        Room room = roomRepository.getRoom(idRoom);
-        if (room == null) {
-            System.out.println("Phòng không tồn tại!");
-            return;
-        }
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Nhập loại phòng mới (để trống nếu không thay đổi): ");
-        String typeRoom = scanner.nextLine().trim();
-
-        System.out.print("Nhập giá mới (nhập 0 nếu không thay đổi): ");
-        float price = scanner.nextFloat();
-
-        room.setTypeRoom(typeRoom.isEmpty() ? room.getTypeRoom() : typeRoom);
-        room.setPrice(price > 0 ? price : room.getPrice());
-
-        System.out.println("Cập nhật thông tin phòng thành công!");
-        System.out.printf("Loại phòng: %s, Giá phòng: %.2f\n", room.getTypeRoom(), room.getPrice());
-    }
 
 
 }

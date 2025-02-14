@@ -10,5 +10,5 @@ public interface BookingService {
     List<Room> showAllRooms();
     List<Booking> findAllRoomsBooking(String nameCus, String phoneCus);
     void payMent(String nameCus, String phone , float totalMoney);
-    void cancelRoom(String nameCus , String phone , long idPhong);
+
 }

@@ -66,8 +66,7 @@ public class ProductDaoImpl implements ProductDao {
             preparedStatement.setInt(1, id);
             ResultSet rs = preparedStatement.executeQuery(); // Execute the query
 
-            if (rs.next()) { // Check if a record exists
-                // Create a new Product object and populate its fields from the ResultSet
+            if (rs.next()) {
                 product = new Product();
                 product.setIdProduct(rs.getInt("idproduct"));
                 product.setName(rs.getString("name"));

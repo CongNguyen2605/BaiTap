@@ -5,6 +5,7 @@ import QuanLyKhachSan.Repository.*;
 import QuanLyKhachSan.Service.BookingService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
@@ -17,41 +18,67 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public void bookingRoom(String nameCus, String phoneCus, Long idRoom) {
+        // Get the room and check if it is available
         Room room = roomRepository.getIsBooked(idRoom);
         if (room == null) {
             System.out.println("Không còn phòng nào!");
             return;
         }
+
+        // Input for rental duration
         Scanner scanner = new Scanner(System.in);
         System.out.print("Nhập thời gian thuê (1 giờ, 3 giờ, 12 giờ, hoặc 1 ngày): ");
         int duration = scanner.nextInt();
         float totalPrice;
+
+        // Calculate the total price based on duration
         switch (duration) {
-            case 1 -> totalPrice = room.getPrice();
-            case 3 -> totalPrice = (float) (room.getPrice() * 3 * 0.9);
-            case 12 -> totalPrice = (float) (room.getPrice() * 12 * 0.75);
-            case 24 -> totalPrice = (float) (room.getPrice() * 24 * 0.6);
-            default -> {
+            case 1:
+                totalPrice = room.getPrice();
+                break;
+            case 3:
+                totalPrice = room.getPrice() * 3 * 0.9f;
+                break;
+            case 12:
+                totalPrice = room.getPrice() * 12 * 0.75f;
+                break;
+            case 24:
+                totalPrice = room.getPrice() * 24 * 0.6f;
+                break;
+            default:
                 System.out.println("Thời gian không hợp lệ!");
                 return;
-            }
         }
-        Customer customer = customerRepository.addCustomer(nameCus, phoneCus);
+
+        // Find the customer in the database
+        Customer customer = customerRepository.findCustomer(nameCus, phoneCus);
+        if (customer == null) {
+            System.out.println("Khách hàng không tồn tại. Vui lòng kiểm tra lại thông tin!");
+            return;
+        }
+
         LocalDateTime rentDay = LocalDateTime.now();
         LocalDateTime rentEnd = rentDay.plusHours(duration);
+
         bookingRepository.addBooking(room, customer, duration, rentEnd.toString());
         billRepository.addBill(customer, room, totalPrice);
+
         room.setBooked(false);
+        roomRepository.updateRoomStatus(room);
+
         System.out.println("Phòng của bạn là: " + room.getIdRoom());
         System.out.println("Thời gian thuê bắt đầu: " + rentDay);
         System.out.println("Thời gian thuê kết thúc: " + rentEnd);
-
 
         new Thread(() -> {
             try {
                 long delay = java.time.Duration.between(LocalDateTime.now(), rentEnd).toMillis();
                 Thread.sleep(delay);
-                room.setBooked(true);
+
+                // Update room status after the rental period ends
+                room.setBooked(true); // Set the room back to available
+                roomRepository.updateRoomStatus(room); // Make sure to update in the database
+
                 System.out.println("Phòng " + room.getIdRoom() + " đã sẵn sàng để đặt lại.");
             } catch (InterruptedException e) {
                 System.out.println("Lỗi trong việc cập nhật trạng thái phòng.");
@@ -68,97 +95,62 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> findAllRoomsBooking(String nameCus, String phoneCus) {
         List<Booking> bookings = bookingRepository.findBooking();
+        List<Booking> customerBookings = new ArrayList<>();
 
         if (bookings == null || bookings.isEmpty()) {
-            System.out.println("Khong tim thay ten khach hang");
+            System.out.println("Không tìm thấy bất kỳ đặt phòng nào.");
             return null;
         }
         for (Booking booking : bookings) {
             if (booking == null) {
                 continue;
             }
-            if (booking.getCustomer().getNameCustomer().equals(nameCus) && booking.getCustomer().getPhoneCustomer().equals(phoneCus)) {
 
-                return bookings;
+            Customer customer = booking.getCustomer();
+            if (customer.getNameCustomer().equals(nameCus) && customer.getPhoneCustomer().equals(phoneCus)) {
+                customerBookings.add(booking);
             }
-
         }
-        return null;
+
+        if (customerBookings.isEmpty()) {
+            System.out.println("Không tìm thấy đặt phòng cho khách hàng: " + nameCus);
+            return null;
+        }
+
+        return customerBookings;
     }
+
     @Override
     public void payMent(String nameCus, String phone, float totalMoney) {
-        List<Booking> bookings = bookingRepository.findBooking();
-        Bill bill = billRepository.findBill(nameCus, phone);
+        boolean paymentSuccess = billRepository.payBill(nameCus, phone, totalMoney);
 
-        float tong = 0;
-        if (bookings == null || bookings.isEmpty()) {
-            System.out.println("Khong tim thay ten khach hang");
+        if (!paymentSuccess) {
+            System.out.println("Thanh toán không thành công.");
             return;
         }
+
+
+        List<Booking> bookings = bookingRepository.findBooking();
+        if (bookings == null || bookings.isEmpty()) {
+            System.out.println("Không tìm thấy thông tin đặt phòng liên quan đến khách hàng.");
+            return;
+        }
+
         for (Booking booking : bookings) {
-            if (booking == null) {
-                continue;
-            }
-            tong += booking.getRoom().getPrice();
-        }
-        if (totalMoney == bill.getTotal()) {
-            System.out.println("Thanh toan thanh cong");
+            if (booking != null && booking.getCustomer().getNameCustomer().equals(nameCus)
+                    && booking.getCustomer().getPhoneCustomer().equals(phone)) {
 
-            Iterator<Booking> iterator = bookings.iterator();
-            while (iterator.hasNext()) {
-                Booking booking = iterator.next();
-                if (booking != null && booking.getCustomer().getNameCustomer().equals(nameCus)
-                        && booking.getCustomer().getPhoneCustomer().equals(phone)) {
-                    booking.getRoom().setBooked(true);
-                    iterator.remove();
-                }
+                booking.getRoom().setBooked(true);
             }
-
-            bill.setPaid(true);
-            bill.setPaymentTime(LocalDateTime.now().toString());
-        } else {
-            System.out.println("Khong du tien de thanh toan");
         }
+
+        bookingRepository.deleteBookingByCustomer(nameCus, phone);
+
+        System.out.println("Thanh toán thành công. Các phòng đã được cập nhật trạng thái và đặt phòng đã được xóa.");
     }
 
-    @Override
-    public void cancelRoom(String nameCus, String phone, long idPhong) {
-        List<Booking> bookings = bookingRepository.findBooking();
-        List<Bill> bills = billRepository.getAllBills();
 
-        if (bookings == null || bookings.isEmpty()) {
-            System.out.println("Khong tim thay ten khach hang hoac danh sach dat phong trong");
-            return;
-        }
-        Iterator<Booking> bookingsIterator = bookings.iterator();
-        while (bookingsIterator.hasNext()) {
-            Booking booking = bookingsIterator.next();
-            if (booking.getRoom().getIdRoom() == idPhong &&
-                    booking.getCustomer().getNameCustomer().equals(nameCus) &&
-                    booking.getCustomer().getPhoneCustomer().equals(phone)) {
-                bookingsIterator.remove();
-                System.out.println("Đã hủy phòng với ID " + idPhong + " khỏi danh sách đặt.");
-                break;
-            }
-        }
-        System.out.println("Khong tim thay phong voi ID " + idPhong + " trong danh sach dat.");
-        for (Bill bill : bills) {
-            if (bill.getCustomer().getNameCustomer().equals(nameCus) && bill.getCustomer().getPhoneCustomer().equals(phone)) {
 
-                Iterator<Room> roomIterator = bill.getRooms().iterator();
-                while (roomIterator.hasNext()) {
-                    Room room = roomIterator.next();
-                    if (room.getIdRoom() == idPhong) {
-                        roomIterator.remove();
-                        bill.setTotal(bill.getTotal() - room.getPrice());
-                        System.out.println("Đã xóa phòng với ID " + idPhong + " khỏi hóa đơn.");
-                        return;
-                    }
-                }
-            }
-        }
-        System.out.println("Khong tim thay phong voi ID " + idPhong + " trong hóa don.");
-    }
 
 
 }

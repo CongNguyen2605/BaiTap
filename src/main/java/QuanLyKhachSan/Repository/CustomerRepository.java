@@ -1,33 +1,112 @@
 package QuanLyKhachSan.Repository;
 
+import QuanLyKhachSan.Connect.JDBCConnect;
 import QuanLyKhachSan.Model.Customer;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CustomerRepository {
-    private Map<Long, Customer> customerMap = new HashMap<>();
-    private long nextId = 4L;
+
+    private final Connection connection;
 
     public CustomerRepository() {
-        customerMap.put(1L, new Customer(1L, "c", "1"));
-        customerMap.put(2L, new Customer(2L, "Cong1", "088888889"));
-        customerMap.put(3L, new Customer(3L, "Cong2", "088888890"));
+        try {
+            this.connection = JDBCConnect.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error connecting to the database: " + e.getMessage(), e);
+        }
     }
-
 
     public Customer addCustomer(String name, String phone) {
-        Customer customer = new Customer(nextId++, name, phone);
-        customerMap.put(customer.getIdCustomer(), customer);
-        return customer;
-    }
+        try {
+            String query = "INSERT INTO \"KhachSan\".\"Customer\" (\"nameCus\", \"phoneCus\") VALUES (?, ?)";
+            PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            stmt.setString(1, name);
+            stmt.setString(2, phone);
 
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Creating customer failed, no rows affected.");
+            }
+
+
+            ResultSet generatedKeys = stmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                long newCustomerId = generatedKeys.getLong(1);
+                return new Customer(newCustomerId, name, phone);
+            } else {
+                throw new SQLException("Creating customer failed, no ID obtained.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error processing customer: " + e.getMessage(), e);
+        }
+    }
 
     public Customer getCustomerId(long id) {
-        return customerMap.get(id);
+        try {
+            String query = "SELECT \"idCustomer\", \"nameCus\", \"phoneCus\" FROM \"KhachSan\".\"Customer\" WHERE \"idCustomer\" = ?";
+            PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setLong(1, id);
+
+            ResultSet resultSet = stmt.executeQuery();
+            if (resultSet.next()) {
+                return new Customer(
+                        resultSet.getLong("idCustomer"),
+                        resultSet.getString("nameCus"),
+                        resultSet.getString("phoneCus")
+                );
+            }
+        } catch (SQLException e) {
+            System.err.println("Error finding customer: " + e.getMessage());
+        }
+        return null;
     }
 
 
-    public Map<Long, Customer> getAllCustomers() {
-        return customerMap;
+    public List<Customer> getAllCustomers() {
+        List<Customer> customerList = new ArrayList<>();
+        try {
+            String query = "SELECT \"idCustomer\", \"nameCus\", \"phoneCus\" FROM \"KhachSan\".\"Customer\"";
+            PreparedStatement stmt = connection.prepareStatement(query);
+
+            ResultSet resultSet = stmt.executeQuery();
+            while (resultSet.next()) {
+                Customer customer = new Customer(
+                        resultSet.getLong("idCustomer"),
+                        resultSet.getString("nameCus"),
+                        resultSet.getString("phoneCus")
+                );
+                customerList.add(customer);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching all customers: " + e.getMessage());
+        }
+        return customerList;
     }
+    public Customer findCustomer(String name, String phone) {
+        String query = "SELECT \"idCustomer\", \"nameCus\", \"phoneCus\" " +
+                "FROM \"KhachSan\".\"Customer\" " +
+                "WHERE \"nameCus\" = ? AND \"phoneCus\" = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, name);
+            stmt.setString(2, phone);
+
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                if (resultSet.next()) {
+                    long idCustomer = resultSet.getLong("idCustomer");
+                    String nameCustomer = resultSet.getString("nameCus");
+                    String phoneCustomer = resultSet.getString("phoneCus");
+
+                    return new Customer(idCustomer, nameCustomer, phoneCustomer);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
 }

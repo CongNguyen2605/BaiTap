@@ -16,6 +16,9 @@ public class Room {
         this.price = price;
     }
 
+//    public Room(long idRoom, String roomName, float roomPrice) {
+//    }
+
     public float getPrice() {
         return price;
     }

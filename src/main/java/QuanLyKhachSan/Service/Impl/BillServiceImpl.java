@@ -7,6 +7,7 @@ import QuanLyKhachSan.Repository.CustomerRepository;
 import QuanLyKhachSan.Repository.RoomRepository;
 import QuanLyKhachSan.Service.BillService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BillServiceImpl implements BillService {
@@ -28,21 +29,34 @@ public class BillServiceImpl implements BillService {
 
 
     @Override
-    public List<Bill> findAllBill(String nameCus , String phone) {
+    public List<Bill> findAllBill(String nameCus, String phone) {
         List<Bill> bills = billRepository.getAllBills();
-        if (bills.isEmpty()) {
+        List<Bill> filteredBills = new ArrayList<>();
+
+        if (bills == null || bills.isEmpty()) {
             System.out.println("Chưa có hóa đơn nào.");
             return null;
         }
-
-        System.out.println("Danh sách tất cả hóa đơn:");
         for (Bill bill : bills) {
-            if(bill.getCustomer().getNameCustomer().equals(nameCus) && bill.getCustomer().getPhoneCustomer().equals(phone)){
-           return bills;
+            if (bill == null) {
+                continue;
+            }
+
+            Customer customer = bill.getCustomer();
+            if (customer.getNameCustomer().equals(nameCus) && customer.getPhoneCustomer().equals(phone)) {
+                filteredBills.add(bill);
+            }
         }
+
+        if (filteredBills.isEmpty()) {
+            System.out.println("Không tìm thấy hóa đơn nào cho khách hàng: " + nameCus);
+            return null;
         }
-        return null;
+
+        System.out.println("Danh sách hóa đơn của khách hàng " + nameCus + ":");
+        return filteredBills;
     }
+
 
 
 }

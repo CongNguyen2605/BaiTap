@@ -71,9 +71,8 @@ public class Main {
             System.out.printf("%-5s%-30s\n", "2", "Make a Booking");
             System.out.printf("%-5s%-30s\n", "3", "Find a Booking");
             System.out.printf("%-5s%-30s\n", "4", "Payment Booking");
-            System.out.printf("%-5s%-30s\n", "5", "Cancel Room Booking");
-            System.out.printf("%-5s%-30s\n", "6", "View Bill");
-            System.out.printf("%-5s%-30s\n", "7", "Exit");
+            System.out.printf("%-5s%-30s\n", "5", "View Bill");
+            System.out.printf("%-5s%-30s\n", "6", "Exit");
 
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
@@ -125,12 +124,8 @@ public class Main {
                     float totalMoney = scanner.nextFloat();
                     bookingService.payMent(name, phone, totalMoney);
                 }
+
                 case 5 -> {
-                    System.out.print("Enter room ID to cancel: ");
-                    long idRoom = scanner.nextLong();
-                    bookingService.cancelRoom(name, phone, idRoom);
-                }
-                case 6 -> {
                     List<Bill> bills = billService.findAllBill(name, phone);
 
                     for (Bill bill : bills) {
@@ -159,7 +154,7 @@ public class Main {
 
                 }
 
-                case 7 -> {
+                case 6 -> {
                     System.out.println("Exiting Admin Menu...");
                     return;
                 }
@@ -176,10 +171,9 @@ public class Main {
             System.out.println("-------------------------------");
             System.out.printf("%-5s%-30s\n", "1", "Show All Rooms");
             System.out.printf("%-5s%-30s\n", "2", "Add Room");
-            System.out.printf("%-5s%-30s\n", "3", "Update Room");
-            System.out.printf("%-5s%-30s\n", "4", "Export file exel");
-            System.out.printf("%-5s%-30s\n", "5", "Import file exel");
-            System.out.printf("%-5s%-30s\n", "6", "Exit");
+            System.out.printf("%-5s%-30s\n", "3", "Export file exel");
+            System.out.printf("%-5s%-30s\n", "4", "Import file exel");
+            System.out.printf("%-5s%-30s\n", "5", "Exit");
 
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
@@ -203,20 +197,16 @@ public class Main {
                 case 2 -> {
                     roomService.addRoom();
                 }
+
                 case 3 -> {
-                    System.out.println("nhap id phong muon sua :");
-                    long id = scanner.nextInt();
-                    roomService.updateRoom(id);
-                }
-                case 4 -> {
                     roomService.exportRooms();
                     System.out.println("Export completed.");
                 }
-                case 5 -> {
+                case 4 -> {
                     roomService.importRooms();
                     System.out.println("Export completed.");
                 }
-                case 6 -> {
+                case 5 -> {
                     System.out.println("Exiting User Menu...");
                     return;
                 }
